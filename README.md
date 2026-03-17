@@ -32,7 +32,7 @@ All MHUB systems supporting HDA API v2.1, including:
 ### HACS (recommended)
 
 1. In HACS, go to **Integrations → Custom repositories**
-2. Add `https://github.com/jd896/Home-Assistant-_-HDA-uControl` as an **Integration**
+2. Add `https://github.com/jd896/Home-Assistant-_-HDA-uControl-Public` as an **Integration**
 3. Search for **HDA uControl** and install
 4. Restart Home Assistant
 
