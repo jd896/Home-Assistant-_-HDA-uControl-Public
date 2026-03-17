@@ -1,0 +1,6 @@
+{
+  "name": "HDA uControl",
+  "domains": ["button", "number", "sensor", "switch"],
+  "iot_class": "local_polling",
+  "homeassistant": "2023.6.0"
+}
