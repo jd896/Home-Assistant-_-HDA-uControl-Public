@@ -1,5 +1,4 @@
 {
   "name": "HDA uControl",
-  "iot_class": "local_polling",
   "homeassistant": "2023.6.0"
 }
