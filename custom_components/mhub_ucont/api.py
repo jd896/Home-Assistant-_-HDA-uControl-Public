@@ -28,7 +28,7 @@ class MhubAPI:
     async def _post(self, path, payload):
         """POST request with JSON payload."""
         url = f"http://{self._host}{path}"
-        
+
         async with self._session.post(url, json=payload) as resp:
             try:
                 return await resp.json(content_type=None)
@@ -41,19 +41,18 @@ class MhubAPI:
     # -------------------------------------------------
 
     async def get_system_info(self):
-        """Get system information (API endpoint 100).
-        
-        Also extracts and caches the API version for reference.
-        """
+        """Get system information (API endpoint 100)."""
         response = await self._get("/api/data/100/")
-        
+
         # Extract and cache API version
+        # New firmware uses "os" key, old firmware uses "mhub"
         if response and isinstance(response, dict):
-            mhub_data = response.get("data", {}).get("mhub", {})
+            inner = response.get("data", {})
+            mhub_data = inner.get("os") or inner.get("mhub", {})
             self._api_version = mhub_data.get("api")
             if self._api_version:
                 _LOGGER.info("Detected MHUB API version: %s", self._api_version)
-        
+
         return response
 
     @property
@@ -66,11 +65,7 @@ class MhubAPI:
         return await self._get("/api/data/102/")
 
     async def get_state(self, stacked=False):
-        """Get system state.
-        
-        Args:
-            stacked: True for stacked systems (endpoint 203), False for standalone (endpoint 200)
-        """
+        """Get system state."""
         if stacked:
             return await self._get("/api/data/203/")
         return await self._get("/api/data/200/")
@@ -81,15 +76,8 @@ class MhubAPI:
     # -------------------------------------------------
 
     async def switch_output_input(self, output_id, input_id):
-        """Switch input source for an output.
-        
-        Args:
-            output_id: Output identifier (a, b, c...)
-            input_id: Input identifier (1, 2, 3...)
-        """
-        return await self._get(
-            f"/api/control/switch/{output_id}/{input_id}/"
-        )
+        """Switch input source for an output."""
+        return await self._get(f"/api/control/switch/{output_id}/{input_id}/")
 
     # -------------------------------------------------
     # VOLUME (Output based)
@@ -97,33 +85,12 @@ class MhubAPI:
     # -------------------------------------------------
 
     async def set_output_volume(self, output_id, volume):
-        """Set volume for a specific output.
-        
-        IMPORTANT: This method uses output_id (a, b, c...), not zone_id.
-        The API requires output identifiers per the spec page 43:
-        /api/control/volume/[ox]/[vy]/
-        
-        Args:
-            output_id: Output identifier (a, b, c...)
-            volume: Volume level (0-100)
-        """
-        return await self._get(
-            f"/api/control/volume/{output_id}/{volume}/"
-        )
+        """Set volume for a specific output."""
+        return await self._get(f"/api/control/volume/{output_id}/{volume}/")
 
     async def set_zone_volume_audio(self, zone_id, volume):
-        """Set zone volume for MHUB AUDIO systems only.
-        
-        This is a separate endpoint specifically for MHUB AUDIO systems
-        that support multi-output zones (API spec page 45).
-        
-        Args:
-            zone_id: Zone identifier (z1, z2, z3...)
-            volume: Volume level (0-100)
-        """
-        return await self._get(
-            f"/api/control/volume/zone/{zone_id}/{volume}/"
-        )
+        """Set zone volume for MHUB AUDIO systems only."""
+        return await self._get(f"/api/control/volume/zone/{zone_id}/{volume}/")
 
     # -------------------------------------------------
     # MUTE (Output based)
@@ -131,35 +98,14 @@ class MhubAPI:
     # -------------------------------------------------
 
     async def set_output_mute(self, output_id, mute):
-        """Set mute for a specific output.
-        
-        IMPORTANT: This method uses output_id (a, b, c...), not zone_id.
-        The API requires output identifiers per the spec page 47:
-        /api/control/mute/[ox]/[mx]/
-        
-        Args:
-            output_id: Output identifier (a, b, c...)
-            mute: Boolean mute state
-        """
+        """Set mute for a specific output."""
         mute_value = "true" if mute else "false"
-        return await self._get(
-            f"/api/control/mute/{output_id}/{mute_value}/"
-        )
+        return await self._get(f"/api/control/mute/{output_id}/{mute_value}/")
 
     async def set_zone_mute_audio(self, zone_id, mute):
-        """Set zone mute for MHUB AUDIO systems only.
-        
-        This is a separate endpoint specifically for MHUB AUDIO systems
-        that support multi-output zones (API spec page 48).
-        
-        Args:
-            zone_id: Zone identifier (z1, z2, z3...)
-            mute: Boolean mute state
-        """
+        """Set zone mute for MHUB AUDIO systems only."""
         mute_value = "true" if mute else "false"
-        return await self._get(
-            f"/api/control/mute/zone/{zone_id}/{mute_value}/"
-        )
+        return await self._get(f"/api/control/mute/zone/{zone_id}/{mute_value}/")
 
     # -------------------------------------------------
     # IR PACK SUMMARY
@@ -167,11 +113,7 @@ class MhubAPI:
     # -------------------------------------------------
 
     async def get_ir_packs(self, stacked=False):
-        """Get IR pack summary.
-        
-        Args:
-            stacked: True for stacked systems (endpoint 205), False for standalone (endpoint 201)
-        """
+        """Get IR pack summary."""
         if stacked:
             return await self._get("/api/data/205/")
         return await self._get("/api/data/201/")
@@ -182,12 +124,7 @@ class MhubAPI:
     # -------------------------------------------------
 
     async def get_ir_pack_details(self, port_id, stacked=False):
-        """Get detailed IR pack information for a specific port.
-        
-        Args:
-            port_id: IR port identifier
-            stacked: True for stacked systems (endpoint 205), False for standalone (endpoint 201)
-        """
+        """Get detailed IR pack information for a specific port."""
         if stacked:
             return await self._get(f"/api/data/205/{port_id}/")
         return await self._get(f"/api/data/201/{port_id}/")
@@ -198,15 +135,8 @@ class MhubAPI:
     # -------------------------------------------------
 
     async def send_ir(self, port_id, command_id):
-        """Send an IR command.
-        
-        Args:
-            port_id: IR port identifier
-            command_id: Command identifier from the IR pack
-        """
-        return await self._get(
-            f"/api/command/ir/{port_id}/{command_id}/"
-        )
+        """Send an IR command."""
+        return await self._get(f"/api/command/ir/{port_id}/{command_id}/")
 
     # -------------------------------------------------
     # SEND PRONTO IR PASSTHROUGH
@@ -225,7 +155,7 @@ class MhubAPI:
 
     async def send_cec(self, output_id, cec_type, command_id):
         """Send a CEC command via uControl CEC pack.
-        
+
         Args:
             output_id: Output identifier (a, b, c...)
             cec_type: 0=HDMI output, 1=HDBaseT output
