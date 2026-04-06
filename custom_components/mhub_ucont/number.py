@@ -64,7 +64,7 @@ class MhubVolumeNumber(CoordinatorEntity, NumberEntity):
         self._zone_id = zone_id
         self._output_id = output_id
 
-        self._attr_name = "Volume"
+        self._attr_name = f"{zone_label} Volume"
         self._attr_unique_id = f"{entry_id}_{zone_id}_volume"
 
         self._attr_device_info = DeviceInfo(

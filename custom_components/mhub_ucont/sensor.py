@@ -43,7 +43,7 @@ class MhubActiveSourceSensor(CoordinatorEntity, SensorEntity):
 
         self._zone_id = zone_id
 
-        self._attr_name = "Active Source"
+        self._attr_name = f"{zone_label} Active Source"
         self._attr_unique_id = f"{entry_id}_{zone_id}_active_source"
         self._attr_icon = "mdi:video-input-hdmi"
 
