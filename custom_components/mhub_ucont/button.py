@@ -116,11 +116,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
             if not _command_allowed(zone_opts, command_id):
                 continue
 
-            # Prefix source button labels with pack name for unique entity IDs
-            if port_type != "output":
-                button_label = f"{pack_name} {command_label}"
-            else:
-                button_label = command_label
+            # Prefix all IR buttons with pack name for unique valid entity IDs
+            button_label = f"{pack_name} {command_label}"
 
             entities.append(MhubIRButton(
                 coordinator, entry_id, device_identifier, device_name,
