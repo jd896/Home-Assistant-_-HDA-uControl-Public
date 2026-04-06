@@ -74,8 +74,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     # ----------------------------------------
     # IR BUTTONS
-    # Skipped for zones configured as CEC or None
-    # Commands filtered by options
     # ----------------------------------------
     for device_key, pack in ir_devices.items():
         port_type = pack.get("_port_type")
@@ -117,15 +115,20 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 continue
             if not _command_allowed(zone_opts, command_id):
                 continue
+
+            # Prefix source button labels with pack name for unique entity IDs
+            if port_type != "output":
+                button_label = f"{pack_name} {command_label}"
+            else:
+                button_label = command_label
+
             entities.append(MhubIRButton(
                 coordinator, entry_id, device_identifier, device_name,
-                port_id, command_id, command_label, model
+                port_id, command_id, button_label, model
             ))
 
     # ----------------------------------------
     # CEC BUTTONS
-    # Only for zones configured as CEC
-    # Commands filtered by options
     # ----------------------------------------
     cec_zones = [
         z for z in zones
@@ -181,7 +184,7 @@ class MhubInputButton(CoordinatorEntity, ButtonEntity):
         super().__init__(coordinator)
         self._output_id = output_id
         self._input_id = input_id
-        self._attr_name = label
+        self._attr_name = f"{zone_label} {label}"
         self._attr_unique_id = f"{entry_id}_{zone_id}_input_{input_id}"
         self._attr_device_info = DeviceInfo(
             identifiers={("mhub_ucont", f"{entry_id}_{zone_id}")},
